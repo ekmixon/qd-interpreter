@@ -42,15 +42,13 @@ for associationMode in allAssociationModes:
         for staIdToConsider in allCombinations:
             if nbSample == qdScenario.nbStas:
                 folderPrefix = os.path.join(associationMode.value, "AllSTAs")
-                if not os.path.exists(folderPrefix):
-                    os.makedirs(folderPrefix)
             else:
-                folderPrefix = str(nbSample) + "STAs"
+                folderPrefix = f"{str(nbSample)}STAs"
                 for name in staIdToConsider:
-                    folderPrefix += ("_" + str(name))
+                    folderPrefix += f"_{str(name)}"
                 folderPrefix = os.path.join(associationMode.value, folderPrefix)
-                if not os.path.exists(folderPrefix):
-                    os.makedirs(folderPrefix)
+            if not os.path.exists(folderPrefix):
+                os.makedirs(folderPrefix)
             # Compute the downlink data transmission for all AP for one association mode
             scheduler.computeDataTransmission(qdScenario, associationMode, staIdToConsider, folderPrefix,
                                               qdScenario.preprocessedSlsData, qdScenario.preprocessedAssociationData,

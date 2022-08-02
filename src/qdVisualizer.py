@@ -176,11 +176,11 @@ class Plot(HasTraits):
 
         # Display all curves selected Tx to all Rxs
         for strTxId in self.guiTxCurvesNodesList:
+            # if strTxId value is not selected, clear the corresponding plots, remove the corresponding legends, and update the curves filter
+            txId = int(strTxId)
             # Iterate over all the possible TX node ID values
             # and check if strTxId value is selected in the list of all possible values
             if strTxId not in self.guiTxCurvesNodesSelected:
-                # if strTxId value is not selected, clear the corresponding plots, remove the corresponding legends, and update the curves filter
-                txId = int(strTxId)
                 for rxId in range(qdScenario.nbNodes):
                     if txId != rxId:
                         for paaTx in range(codebooks.getNbPaaNode(qdScenario.getNodeType(txId))):
@@ -191,28 +191,54 @@ class Plot(HasTraits):
                                     CURVES_DIC[(self.name, txId, rxId, paaTx, paaRx)].setData([0], [0],
                                                                                               clear=True)  # Clear the plot
                                     Y_CURVE_LEGEND[self.name].removeItem(
-                                        "TX:" + str(txId) + " => " + "RX:" + str(rxId) + " PAA_TX:" + str(
-                                            paaTx) + " PAA_RX:" + str(
-                                            paaRx) + " :Power Received (dB)")  # Clear the legend
+                                        (
+                                            (
+                                                f"TX:{txId} => RX:{str(rxId)} PAA_TX:{str(paaTx)}"
+                                                + " PAA_RX:"
+                                            )
+                                            + str(paaRx)
+                                            + " :Power Received (dB)"
+                                        )
+                                    )
+
                                     del Y_CURVE_FILTER[(
                                         self.name, txId, rxId, paaTx, paaRx,
                                         0)]  # Remove from the curve filter dictionary
             else:
-                # if strTxId value is selected, update the plots, the legend and the curves filter
-                txId = int(strTxId)
                 for rxId in range(qdScenario.nbNodes):
                     if txId != rxId:
                         for paaTx in range(codebooks.getNbPaaNode(qdScenario.getNodeType(txId))):
                             for paaRx in range(codebooks.getNbPaaNode(qdScenario.getNodeType(rxId))):
                                 # Update the legend (remove and add it) TODO: Use the filter to know if it was already existing
                                 Y_CURVE_LEGEND[self.name].removeItem(
-                                    "TX:" + str(txId) + " => " + "RX:" + str(rxId) + " PAA_TX:" + str(
-                                        paaTx) + " PAA_RX:" + str(paaRx) + " :Power Received (dB)")
-                                Y_CURVE_LEGEND[self.name].addItem(CURVES_DIC[("Power", txId, rxId, paaTx, paaRx)],
-                                                                  "TX:" + str(txId) + " => " + "RX:" + str(
-                                                                      rxId) + " PAA_TX:" + str(
-                                                                      paaTx) + " PAA_RX:" + str(
-                                                                      paaRx) + " :Power Received (dB)")
+                                    (
+                                        (
+                                            f"TX:{txId} => RX:{str(rxId)} PAA_TX:{str(paaTx)}"
+                                            + " PAA_RX:"
+                                        )
+                                        + str(paaRx)
+                                        + " :Power Received (dB)"
+                                    )
+                                )
+
+                                Y_CURVE_LEGEND[self.name].addItem(
+                                    CURVES_DIC[
+                                        ("Power", txId, rxId, paaTx, paaRx)
+                                    ],
+                                    (
+                                        (
+                                            (
+                                                f"TX:{txId} => RX:{str(rxId)}"
+                                                + " PAA_TX:"
+                                            )
+                                            + str(paaTx)
+                                            + " PAA_RX:"
+                                        )
+                                        + str(paaRx)
+                                        + " :Power Received (dB)"
+                                    ),
+                                )
+
 
                                 # pyqtgraph cannot handle only infinite value - handle this
                                 onlyInfiniteValues = np.all(
@@ -238,9 +264,16 @@ class Plot(HasTraits):
                                     CURVES_DIC[(self.name, txId, rxId, paaTx, paaRx)].setData([0], [0],
                                                                                               clear=True)  # Clear the plot
                                     Y_CURVE_LEGEND[self.name].removeItem(
-                                        "TX:" + str(txId) + " => " + "RX:" + str(rxId) + " PAA_TX:" + str(
-                                            paaTx) + " PAA_RX:" + str(
-                                            paaRx) + " :Power Received (dB)")  # Clear the legend
+                                        (
+                                            (
+                                                f"TX:{str(txId)} => RX:{rxId} PAA_TX:{str(paaTx)}"
+                                                + " PAA_RX:"
+                                            )
+                                            + str(paaRx)
+                                            + " :Power Received (dB)"
+                                        )
+                                    )
+
                                     del Y_CURVE_FILTER[(
                                         self.name, txId, rxId, paaTx, paaRx,
                                         1)]  # Remove from the curve filter dictionary
@@ -253,14 +286,34 @@ class Plot(HasTraits):
                             for paaRx in range(codebooks.getNbPaaNode(qdScenario.getNodeType(rxId))):
                                 # Update the legend (remove and add it) TODO: Use the filter to know if it was already existing
                                 Y_CURVE_LEGEND[self.name].removeItem(
-                                    "TX:" + str(txId) + " => " + "RX:" + str(rxId) + " PAA_TX:" + str(
-                                        paaTx) + " PAA_RX:" + str(
-                                        paaRx) + " :Power Received (dB)")
-                                Y_CURVE_LEGEND[self.name].addItem(CURVES_DIC[("Power", txId, rxId, paaTx, paaRx)],
-                                                                  "TX:" + str(txId) + " => " + "RX:" + str(
-                                                                      rxId) + " PAA_TX:" + str(
-                                                                      paaTx) + " PAA_RX:" + str(
-                                                                      paaRx) + " :Power Received (dB)")
+                                    (
+                                        (
+                                            f"TX:{str(txId)} => RX:{rxId} PAA_TX:{str(paaTx)}"
+                                            + " PAA_RX:"
+                                        )
+                                        + str(paaRx)
+                                        + " :Power Received (dB)"
+                                    )
+                                )
+
+                                Y_CURVE_LEGEND[self.name].addItem(
+                                    CURVES_DIC[
+                                        ("Power", txId, rxId, paaTx, paaRx)
+                                    ],
+                                    (
+                                        (
+                                            (
+                                                f"TX:{str(txId)} => RX:{rxId}"
+                                                + " PAA_TX:"
+                                            )
+                                            + str(paaTx)
+                                            + " PAA_RX:"
+                                        )
+                                        + str(paaRx)
+                                        + " :Power Received (dB)"
+                                    ),
+                                )
+
 
                                 # pyqtgraph cannot handle only infinite value - handle this
                                 onlyInfiniteValues = np.all(

@@ -90,30 +90,27 @@ def getSuMimoAllValidStreamCombinations(nbPaaTx, nbPaaRx):
         # initialTxStream represents the stream for whom we are looking at the possible configuration
         setToEvaluate = allIndividualStreamList  # The entire list of possible Tx Streams
         possibleStreamsConfiguration = [initialTxStream]  # Store a possible stream configuration
-        setOfTx = []  # Used to check the MIMO Initiator Tx PAA streams already added
-        setOfRx = []  # Used to check the Responder Rx ID streams already added
-        setOfTx.append(initialTxStream[0])  # Add the MIMO Initiator PAA ID of the initialTxStream
-        setOfRx.append(initialTxStream[1])  # Add the Responder Rx ID of the initialTxStream
+        setOfTx = [initialTxStream[0]]
+        setOfRx = [initialTxStream[1]]
         for combinationTry in setToEvaluate:
             # Iterate over all individual streams to check if it can be added to a possible stream configuration
-            if combinationTry[0] in setOfTx or combinationTry[1] in setOfRx:
-                # The combination is impossible
-                # We discard the combination that are impossible i.e.:
-                # - Reusing the same MIMO initiator PAA
-                # - Reusing the same responder ID
-                pass
-            else:
+            if (
+                combinationTry[0] not in setOfTx
+                and combinationTry[1] not in setOfRx
+            ):
                 # The combination is possible - Add it
                 setOfTx.append(combinationTry[0])
                 setOfRx.append(combinationTry[1])
                 possibleStreamsConfiguration.append(combinationTry)
-        txStreamCombinationToAdd = []
-        # The algorithm will yield duplicated possible stream configurations
-        # However, they will be ordered differently so we need to order the stream configuration in order to avoid duplicate
-        # For this, we iterate over the possible stream configuration and reorder it
-        for i in range(len(possibleStreamsConfiguration)):
-            txStreamCombinationToAdd.append(
-                possibleStreamsConfiguration.pop(possibleStreamsConfiguration.index(min(possibleStreamsConfiguration))))
+        txStreamCombinationToAdd = [
+            possibleStreamsConfiguration.pop(
+                possibleStreamsConfiguration.index(
+                    min(possibleStreamsConfiguration)
+                )
+            )
+            for _ in range(len(possibleStreamsConfiguration))
+        ]
+
         # Keep the possible Tx Stream Combinations without any duplicates
         if tuple(txStreamCombinationToAdd) in duplicates:
             duplicates[tuple(txStreamCombinationToAdd)]
@@ -150,30 +147,27 @@ def getMuMimoAllValidStreamCombinations(elementsInitiator, elementsResponder):
         # initialTxStream represents the stream for whom we are looking at the possible configuration
         setToEvaluate = allIndividualStreamList  # The entire list of possible Tx Streams
         possibleStreamsConfiguration = [initialTxStream]  # Store a possible stream configuration
-        setOfTx = []  # Used to check the MIMO Initiator Tx PAA streams already added
-        setOfRx = []  # Used to check the Responder Rx ID streams already added
-        setOfTx.append(initialTxStream[0])  # Add the MIMO Initiator PAA ID of the initialTxStream
-        setOfRx.append(initialTxStream[1])  # Add the Responder Rx ID of the initialTxStream
+        setOfTx = [initialTxStream[0]]
+        setOfRx = [initialTxStream[1]]
         for combinationTry in setToEvaluate:
             # Iterate over all individual streams to check if it can be added to a possible stream configuration
-            if combinationTry[0] in setOfTx or combinationTry[1] in setOfRx:
-                # The combination is impossible
-                # We discard the combination that are impossible i.e.:
-                # - Reusing the same MIMO initiator PAA
-                # - Reusing the same responder ID
-                pass
-            else:
+            if (
+                combinationTry[0] not in setOfTx
+                and combinationTry[1] not in setOfRx
+            ):
                 # The combination is possible - Add it
                 setOfTx.append(combinationTry[0])
                 setOfRx.append(combinationTry[1])
                 possibleStreamsConfiguration.append(combinationTry)
-        txStreamCombinationToAdd = []
-        # The algorithm will yield duplicated possible stream configurations
-        # However, they will be ordered differently so we need to order the stream configuration in order to avoid duplicate
-        # For this, we iterate over the possible stream configuration and reorder it
-        for i in range(len(possibleStreamsConfiguration)):
-            txStreamCombinationToAdd.append(
-                possibleStreamsConfiguration.pop(possibleStreamsConfiguration.index(min(possibleStreamsConfiguration))))
+        txStreamCombinationToAdd = [
+            possibleStreamsConfiguration.pop(
+                possibleStreamsConfiguration.index(
+                    min(possibleStreamsConfiguration)
+                )
+            )
+            for _ in range(len(possibleStreamsConfiguration))
+        ]
+
         # We store the possible Tx Stream Combinations in a hashmap to get rid of duplucate
         mimoTxStreamCombinationsItoR[tuple(txStreamCombinationToAdd)] = 1
     return mimoTxStreamCombinationsItoR
@@ -330,14 +324,10 @@ def getSuMimoTopKSnr(txId, nbPaaTx, mimoTxStreamCombinationsTxtoRx, mimoSisoResu
     # It depends from the number of Tx Sector of the MIMO initiator PAA and its number of PAA
     nbSectorsPerPaaMimoTx = codebooks.getNbSectorsPerPaaNode(qdScenario.getNodeType(txId))
     txNbSectorId = np.arange(nbSectorsPerPaaMimoTx)
-    argProduct = []  # Argument to pass to obtain the right product iterator
     txTopKCandidatesTxtoRx = {}
     rxTopKCandidatesTxtoRx = {}
     txTopKCandidatesTxtoRxTable = []
-    streamCombinationTested = 0
-    for i in range(nbPaaTx):
-        argProduct.append(txNbSectorId)
-
+    argProduct = [txNbSectorId for _ in range(nbPaaTx)]
     allTxSectorsCombinations = list(itertools.product(*argProduct))
     for aStreamCombination in mimoTxStreamCombinationsTxtoRx:
         txCandidates = []  # Change one line
@@ -345,14 +335,19 @@ def getSuMimoTopKSnr(txId, nbPaaTx, mimoTxStreamCombinationsTxtoRx, mimoSisoResu
         # A stream combination is for example (Tx PAA:0, Rx PAA:0)(Tx PAA:1, Rx PAA:1)
         for aTxSectorCombination in allTxSectorsCombinations:
             # Iterate over all the possible Tx sector combinations for Tx PAAs for a given stream combination
-            sumSinrLinear = 0
-            indexSector = 0
+            sumSinrLinear = sum(
+                10
+                ** (
+                    mimoSisoResults[indidualStream][1][
+                        aTxSectorCombination[indexSector]
+                    ]
+                    / 10
+                )
+                for indexSector, indidualStream in enumerate(
+                    aStreamCombination
+                )
+            )
 
-            for indidualStream in aStreamCombination:
-                # Iterate over each stream of the combination to compute the sum of the joint-SNR (we use linear scale to sum them)
-                # mimoSisoResults[indidualStream][1] contains the SNR for one of the stream
-                sumSinrLinear += 10 ** (mimoSisoResults[indidualStream][1][aTxSectorCombination[indexSector]] / 10)
-                indexSector += 1
             sumSinrDb = 10 * np.log10(1 + sumSinrLinear)  # Convert back the sum to the dB scale
             # Keep the top-K combination, i.e, the top Tx sector combinations that yield the highest joint-SNR
             if len(txCandidates) < topK:
@@ -362,12 +357,8 @@ def getSuMimoTopKSnr(txId, nbPaaTx, mimoTxStreamCombinationsTxtoRx, mimoSisoResu
         # Store the top K candidates for a stream combination
         txTopKCandidatesTxtoRx[aStreamCombination] = sorted(txCandidates, reverse=True)
         rxTopKCandidatesTxtoRx[aStreamCombination] = sorted(txCandidates, reverse=True)
-        bufferToStore = []
-        for i in sorted(txCandidates, reverse=True):
-            bufferToStore.append(i[1])
-
+        bufferToStore = [i[1] for i in sorted(txCandidates, reverse=True)]
         txTopKCandidatesTxtoRxTable.append(bufferToStore)
-        streamCombinationTested += 1
     return txTopKCandidatesTxtoRx, txTopKCandidatesTxtoRxTable
 
 def getMuMimoTopKSnr(mode, mimoInitiatorId, nbPaaMimoInitiator,nbSectorsPerPaaMimoInitiator, mimoTxStreamCombinationsItoR, sisoInitiatorToResponderList, topK):
@@ -412,24 +403,26 @@ def getMuMimoTopKSnr(mode, mimoInitiatorId, nbPaaMimoInitiator,nbSectorsPerPaaMi
     streamIdItoRTable = []
 
     if mode == "initiator":
-        for i in range(nbPaaMimoInitiator):
-            argProduct.append(txNbSectorId)
+        argProduct.extend(txNbSectorId for _ in range(nbPaaMimoInitiator))
     else:
-        for i in range(len(mimoInitiatorId)):
-            argProduct.append(txNbSectorId)
-
+        argProduct.extend(txNbSectorId for _ in range(len(mimoInitiatorId)))
     allTxSectorsCombinations = list(itertools.product(*argProduct))
     txCandidates = []
     for aStreamCombination in mimoTxStreamCombinationsItoR.keys():
         # Iterate over all the streams combination to compute the joint-SNR sum
         for aTxSectorCombination in allTxSectorsCombinations:
             # Iterate over all the possible Tx sector combinations
-            sumSinrLinear = 0
-            indexSector = 0
-            for i in aStreamCombination:
-                # Iterate over the each stream of the combination to compute the sum of the joint-SNR (we use linear scale to sum them)
-                sumSinrLinear += 10 ** (sisoInitiatorToResponderList[i][1][aTxSectorCombination[indexSector]] / 10)
-                indexSector += 1
+            sumSinrLinear = sum(
+                10
+                ** (
+                    sisoInitiatorToResponderList[i][1][
+                        aTxSectorCombination[indexSector]
+                    ]
+                    / 10
+                )
+                for indexSector, i in enumerate(aStreamCombination)
+            )
+
             sumSinrDb = 10 * np.log10(1 + sumSinrLinear)  # Convert back the sum to the dB scale
 
             # Keep the top-K combination, i.e, the 5 Tx sector combinations that yield the highest joint-SNR
@@ -440,10 +433,7 @@ def getMuMimoTopKSnr(mode, mimoInitiatorId, nbPaaMimoInitiator,nbSectorsPerPaaMi
         # Store the top K candidates for a stream combination
         txTopKCandidatesItoR[aStreamCombination] = sorted(txCandidates, reverse=True)
         rxTopKCandidatesItoR[aStreamCombination] = sorted(txCandidates, reverse=True)
-        bufferToStore = []
-        for i in sorted(txCandidates, reverse=True):
-            bufferToStore.append(i[1])
-
+        bufferToStore = [i[1] for i in sorted(txCandidates, reverse=True)]
         txTopKCandidatesItoRTable.append(bufferToStore)
         streamIdItoRTable.append(aStreamCombination)
     return txTopKCandidatesItoR,txTopKCandidatesItoRTable,streamIdItoRTable
@@ -467,21 +457,18 @@ def getDirectivity(nodeId, qdScenario, codebooks):
     """
     angles = []
     directivityList = []
-    index = 0
-    for sectorId in range(codebooks.getNbSectorsPerPaaNode(qdScenario.getNodeType(nodeId))):
-        for awvId in range(5):
-            # Get the azimuth and elevation angle corresponding to a sector/AWV
-            azimuthAwv, elevationAwv = codebooks.getRefinedAwvAzimuthElevation(
-                sectorId,
-                awvId, qdScenario.getNodeType(nodeId))
-            angles.append([azimuthAwv, elevationAwv])
-            # Get the directivity for the sector/AWV azimuth and elevation angle
-            directivity = codebooks.getRefinedAwvDirectivityAzEl(azimuthAwv,
-                                                                 elevationAwv,
-                                                                 qdScenario.getNodeType(
-                                                                     nodeId))
-            directivityList.append(directivity)
-            index += 1
+    for sectorId, awvId in itertools.product(range(codebooks.getNbSectorsPerPaaNode(qdScenario.getNodeType(nodeId))), range(5)):
+        # Get the azimuth and elevation angle corresponding to a sector/AWV
+        azimuthAwv, elevationAwv = codebooks.getRefinedAwvAzimuthElevation(
+            sectorId,
+            awvId, qdScenario.getNodeType(nodeId))
+        angles.append([azimuthAwv, elevationAwv])
+        # Get the directivity for the sector/AWV azimuth and elevation angle
+        directivity = codebooks.getRefinedAwvDirectivityAzEl(azimuthAwv,
+                                                             elevationAwv,
+                                                             qdScenario.getNodeType(
+                                                                 nodeId))
+        directivityList.append(directivity)
     return directivityList, angles
 
 

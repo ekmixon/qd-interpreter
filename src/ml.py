@@ -127,15 +127,10 @@ def getGroundTruthValues(qdScenario, codebooks, communicationMode, dataIndex, ta
         The preprocessed data from the SLS phase (it contains the Rx Power for every transmission for all sectors tested in the SLS phase)
     """
     if communicationMode == CommunicationMode.AP_TO_STAS:
-        #####################################################
-        #    AP TO STAs                                     #
-        #####################################################
-        # We want to perform the training using the SLS data of one AP (targetApId) to all the STAs
-        rowIndex = 0
         nbSectorsPerApAntenna = codebooks.getNbSectorPerApAntenna()
         y_all = np.zeros((qdScenario.nbTraces * qdScenario.nbStas, nbSectorsPerApAntenna))
 
-        for staId in range(qdScenario.nbAps, qdScenario.nbNodes):
+        for rowIndex, staId in enumerate(range(qdScenario.nbAps, qdScenario.nbNodes)):
             # Iterate over all the STAs in the simulation
             for traceId in range(qdScenario.nbTraces):
                 # Iterate over all the traces of the simulation
@@ -149,16 +144,10 @@ def getGroundTruthValues(qdScenario, codebooks, communicationMode, dataIndex, ta
                 # We transform the data to have the sum of all the power per sector of a given trace equal to 1
                 y_all[traceId + rowIndex * qdScenario.nbTraces] = y_all[traceId + rowIndex * qdScenario.nbTraces] / sum(
                     y_all[traceId + rowIndex * qdScenario.nbTraces])
-            rowIndex += 1
     elif communicationMode == CommunicationMode.STAS_TO_AP:
-        ######################################################
-        #     STAs TO AP                                      #
-        ######################################################
-        # We want to perform the training using the SLS data from all STAs to one AP (apTargetId)
-        rowIndex = 0
         nbSectorsPerStaAntenna = codebooks.getNbSectorPerStaAntenna()
         y_all = np.zeros((qdScenario.nbTraces * qdScenario.nbStas, nbSectorsPerStaAntenna))
-        for staId in range(qdScenario.nbAps, qdScenario.nbNodes):
+        for rowIndex, staId in enumerate(range(qdScenario.nbAps, qdScenario.nbNodes)):
             # Iterate over all the STAs in the simulation
             for traceId in range(qdScenario.nbTraces):
                 # Iterate over all the traces of the simulation
@@ -173,17 +162,10 @@ def getGroundTruthValues(qdScenario, codebooks, communicationMode, dataIndex, ta
                 # We transform the data to have the sum of all the power per sector of a given trace equal to 1
                 y_all[traceId + rowIndex * qdScenario.nbTraces] = y_all[traceId + rowIndex * qdScenario.nbTraces] / sum(
                     y_all[traceId + rowIndex * qdScenario.nbTraces])
-            rowIndex += 1
     elif communicationMode == CommunicationMode.STAS_TO_STA:
-        ######################################################
-        #     STAs TO STA                                    #
-        ######################################################
-        # We want to perform the training using the SLS data of ALL STAs (minus one, the targetStaId) to one STA (targetStaId)
-        # Get all the power received for all STAs to targetStaId transmissions and this for every tx sector of the STAs
-        rowIndex = 0
         nbSectorsPerStaAntenna = codebooks.getNbSectorPerStaAntenna()
         y_all = np.zeros((qdScenario.nbTraces * qdScenario.nbStas, nbSectorsPerStaAntenna))
-        for staId in range(qdScenario.nbAps, qdScenario.nbNodes):
+        for rowIndex, staId in enumerate(range(qdScenario.nbAps, qdScenario.nbNodes)):
             for traceId in range(qdScenario.nbTraces):
                 # Go over every traces
                 if targetStaId == staId:
@@ -199,7 +181,6 @@ def getGroundTruthValues(qdScenario, codebooks, communicationMode, dataIndex, ta
                     y_all[traceId + rowIndex * qdScenario.nbTraces] = y_all[
                                                                           traceId + rowIndex * qdScenario.nbTraces] / sum(
                         y_all[traceId + rowIndex * qdScenario.nbTraces])
-            rowIndex += 1
     return y_all
 
 
@@ -307,11 +288,11 @@ def topKSls(qdScenario, codebooks, slsRxPower, dataIndex, communicationMode=Comm
     # The number of classes just depends from the codebook number of sectors
     if communicationMode == CommunicationMode.AP_TO_STAS:
         num_classes = codebooks.getNbSectorPerApAntenna()
-    elif CommunicationMode.STAS_TO_AP:
+    elif (
+        CommunicationMode.STAS_TO_AP
+        or communicationMode == CommunicationMode.STAS_TO_STA
+    ):
         num_classes = codebooks.getNbSectorPerStaAntenna()
-    elif communicationMode == CommunicationMode.STAS_TO_STA:
-        num_classes = codebooks.getNbSectorPerStaAntenna()
-
     model = thisModel.createModel(modelType, num_classes, (x_all.shape[1],))
 
     model.compile(loss=tf.keras.losses.categorical_crossentropy,

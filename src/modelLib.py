@@ -27,11 +27,14 @@ import tensorflow as tf
 class Models:
     """Class to create the training model
     """
-    def createModel(self,modelType,numClasses,inputshape):    
+    def createModel(self,modelType,numClasses,inputshape):
         modelList=['Baseline','CoordinatesAndRotationsSplit','CoordinatesAndRotationsSplitExperimental',]
-        assert modelType in modelList, "modelType error: set modelType to one of the following:"+str(modelList)
+        assert (
+            modelType in modelList
+        ), f"modelType error: set modelType to one of the following:{modelList}"
 
-        if(modelType == 'Baseline'):
+
+        if (modelType == 'Baseline'):
 
             model = tf.keras.models.Sequential()
             model.add(tf.keras.Input(inputshape))
@@ -43,7 +46,10 @@ class Models:
             model.add(tf.keras.layers.Activation('relu'))
             model.add(tf.keras.layers.Dense(numClasses))
             model.add(tf.keras.layers.Activation('softmax'))
-        elif(modelType == 'CoordinatesAndRotationsSplit'):
+        elif modelType in [
+            'CoordinatesAndRotationsSplit',
+            'CoordinatesAndRotationsSplitExperimental',
+        ]:
             inputs = tf.keras.Input(inputshape)
 
             leftInput=inputs[:,0:3]
@@ -52,7 +58,7 @@ class Models:
             left = tf.keras.layers.Dense(32,activation='relu')(left)
             left=tf.keras.layers.Dense(numClasses, activation='relu')(left)
             left=tf.keras.layers.LayerNormalization(axis=1)(left)
-            
+
             rightInput=inputs[:,3:6]
             right = tf.keras.layers.Dense(4,activation='relu')(rightInput)
             right = tf.keras.layers.Dense(16, activation='relu')(right)
@@ -60,25 +66,6 @@ class Models:
             right=tf.keras.layers.Dense(numClasses, activation='relu')(right)           
             right=tf.keras.layers.LayerNormalization(axis=1)(right)
 
-
-            concatenated = tf.keras.layers.concatenate([left, right])
-            out = tf.keras.layers.Dense(numClasses, activation='softmax')(concatenated)
-            model = tf.keras.models.Model(inputs, out)
-        elif(modelType == 'CoordinatesAndRotationsSplitExperimental'):
-            inputs = tf.keras.Input(inputshape)
-            leftInput=inputs[:,0:3]#split[0]#
-            left = tf.keras.layers.Dense(4, activation='relu')(leftInput)
-            left = tf.keras.layers.Dense(16, activation='relu')(left)
-            left = tf.keras.layers.Dense(32,activation='relu')(left)
-            left=tf.keras.layers.Dense(numClasses, activation='relu')(left)
-            left=tf.keras.layers.LayerNormalization(axis=1)(left)
-
-            rightInput=inputs[:,3:6]#split[1]#
-            right = tf.keras.layers.Dense(4,activation='relu')(rightInput)
-            right = tf.keras.layers.Dense(16, activation='relu')(right)
-            right = tf.keras.layers.Dense(32,activation='relu')(right)
-            right=tf.keras.layers.Dense(numClasses, activation='relu')(right)
-            right=tf.keras.layers.LayerNormalization(axis=1)(right)
 
             concatenated = tf.keras.layers.concatenate([left, right])
             out = tf.keras.layers.Dense(numClasses, activation='softmax')(concatenated)

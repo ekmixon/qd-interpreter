@@ -137,8 +137,11 @@ def plotSlsMetrics(qdScenario,codebooks):
                         yValues = df['rxPower']
                         xLegend = "Trace Index"
                         yLegend = "Received Power (dBm)"
-                        titleGraph = "Node:" + str(txId) + " => Node:" + str(rxId) + " PAA Tx:" + str(
-                            txAntennaID) + " PAA Rx:" + str(rxAntennaID)
+                        titleGraph = (
+                            f"Node:{str(txId)} => Node:{str(rxId)} PAA Tx:{str(txAntennaID)}"
+                            + " PAA Rx:"
+                        ) + str(rxAntennaID)
+
 
                         rxItxssPlot = OraclePlot(xValues, yValues,
                                                  os.path.join(globals.slsFolder, globals.rxPowerItxssFolder),
@@ -157,8 +160,11 @@ def plotSlsMetrics(qdScenario,codebooks):
                         yValues = df['sector']
                         xLegend = "Trace Index"
                         yLegend = "Best Sector"
-                        titleGraph = "Node:" + str(txId) + " => Node:" + str(rxId) + " PAA Tx:" + str(
-                            txAntennaID) + " PAA Rx:" + str(rxAntennaID)
+                        titleGraph = (
+                            f"Node:{str(txId)} => Node:{str(rxId)} PAA Tx:{str(txAntennaID)}"
+                            + " PAA Rx:"
+                        ) + str(rxAntennaID)
+
                         bestItxssSectorPlot = OraclePlot(xValues, yValues,
                                                          os.path.join(globals.slsFolder, globals.bestSectorItxssFolder),
                                                          bestItxssSectorFile, titleGraph, xLegend,
@@ -201,15 +207,27 @@ def plotMobilityMetrics(qdScenario):
         # We consider that the APs do not move so we get only the coordinate of the first trace
         apCoordinate = np.transpose(qdScenario.getNodePosition(0,apId))
         ax.plot(apCoordinate[0], apCoordinate[1], 'k*', markersize=10)
-        plt.text(apCoordinate[0], apCoordinate[1], 'AP' + str(apId), horizontalalignment='center')
+        plt.text(
+            apCoordinate[0],
+            apCoordinate[1],
+            f'AP{str(apId)}',
+            horizontalalignment='center',
+        )
+
 
     for staId in range(qdScenario.nbAps, qdScenario.nbNodes):
         # Display Sta Trajectory
         staCoordinates = np.transpose(qdScenario.getNodeAllPositions(staId))
 
-        ax.plot(staCoordinates[0], staCoordinates[1], color[staId - qdScenario.nbAps], linewidth=0.5,
-                linestyle=style[staId - qdScenario.nbAps],
-                label="STA" + str(staId))
+        ax.plot(
+            staCoordinates[0],
+            staCoordinates[1],
+            color[staId - qdScenario.nbAps],
+            linewidth=0.5,
+            linestyle=style[staId - qdScenario.nbAps],
+            label=f"STA{str(staId)}",
+        )
+
 
         # Display the STA starting Point
         ax.plot(staCoordinates[0, 0], staCoordinates[1, 0], 'r*', markersize=10)
@@ -270,7 +288,13 @@ def plotMobilityMetrics(qdScenario):
         # We consider that the APs do not move so we get only the coordinate of the first trace
         apCoordinates = np.transpose(qdScenario.getNodePosition(0, apId))
         ax.plot(apCoordinates[0], apCoordinates[1], 'k*', markersize=10)
-        plt.text(apCoordinates[0], apCoordinates[1], 'AP' + str(apId), horizontalalignment='center')
+        plt.text(
+            apCoordinates[0],
+            apCoordinates[1],
+            f'AP{str(apId)}',
+            horizontalalignment='center',
+        )
+
     fileToSave = os.path.join(destinationPath, "AllStasHexBinHeatmap.pdf")
     plt.savefig(fileToSave)
 
@@ -298,10 +322,7 @@ def plotAssociationMetrics(qdScenario,preprocessedAssociationData):
     dicCoordinatesX = {new_list: [] for new_list in range(qdScenario.nbAps)}
     dicCoordinatesY = {new_list: [] for new_list in range(qdScenario.nbAps)}
 
-    nbTotalStaConnectedToAp = {}
-    for i in range(qdScenario.nbAps):
-        nbTotalStaConnectedToAp[i] = 0
-
+    nbTotalStaConnectedToAp = {i: 0 for i in range(qdScenario.nbAps)}
     # Get the coordinates and the number of STAs connected to an AP
     for staId in range(qdScenario.nbAps, qdScenario.nbNodes):
         for traceIndex in range(qdScenario.nbTraces):
@@ -319,16 +340,28 @@ def plotAssociationMetrics(qdScenario,preprocessedAssociationData):
                 for apId in range(qdScenario.nbAps):
                     apCoordinates = np.transpose(qdScenario.getNodePosition(0, apId))
                     ax.plot(apCoordinates[0], apCoordinates[1], 'k*', markersize=1)
-                    ax.text(apCoordinates[0], apCoordinates[1], 'AP' + str(apId), horizontalalignment='center')
+                    ax.text(
+                        apCoordinates[0],
+                        apCoordinates[1],
+                        f'AP{str(apId)}',
+                        horizontalalignment='center',
+                    )
+
                     ax.tick_params(labelsize=5)  # Reduce tick size
-                ax.set_title("Location of STAs associated to AP:" + str(i),fontsize=9)
+                ax.set_title(f"Location of STAs associated to AP:{str(i)}", fontsize=9)
             else:
                 xOrig = np.asarray(dicCoordinatesX[i]).flatten()
                 yOrig = np.asarray(dicCoordinatesY[i]).flatten()
                 for apId in range(qdScenario.nbAps):
                     apCoordinates = np.transpose(qdScenario.getNodePosition(0, apId))
                     ax.plot(apCoordinates[0], apCoordinates[1], 'k*', markersize=1)
-                    ax.text(apCoordinates[0], apCoordinates[1], 'AP' + str(apId), horizontalalignment='center')
+                    ax.text(
+                        apCoordinates[0],
+                        apCoordinates[1],
+                        f'AP{str(apId)}',
+                        horizontalalignment='center',
+                    )
+
                 viridis = cm.get_cmap('jet', 256)
                 newcolors = viridis(np.linspace(0, 1, 256))
                 white = np.array([1, 1, 1, 1])
@@ -351,9 +384,9 @@ def plotAssociationMetrics(qdScenario,preprocessedAssociationData):
                 cbar.set_label('Number of STAs in one hexbin')
                 cbar.ax.tick_params(labelsize=5)  # Reduce tick size
                 ax.tick_params(labelsize=5)  # Reduce tick size
-                ax.set_title("Heatmap of STAs associated to AP:" + str(i),fontsize=9)
+                ax.set_title(f"Heatmap of STAs associated to AP:{str(i)}", fontsize=9)
 
-        fileToSave = os.path.join(destinationPath, "StaConnectedToAP" + str(i) + ".pdf")
+        fileToSave = os.path.join(destinationPath, f"StaConnectedToAP{str(i)}.pdf")
         plt.savefig(fileToSave)
 
 

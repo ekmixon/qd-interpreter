@@ -83,19 +83,45 @@ def readNs3SuMimoResults(nsResultsFolder, suMimoFilePrefix, qdScenario):
                                 # Construct the results for every TX and RX streams
 
                                 # Tx Streams
-                                txAntennaId.append(int(row['TX_ANTENNA_ID'+str(streamId+1)]))
-                                txSectorId.append(int(row['TX_SECTOR_ID' + str(streamId+1)]))
-                                txAwv.append(int(row['TX_AWV_ID' + str(streamId+1)]))
+                                txAntennaId.append(int(row[f'TX_ANTENNA_ID{str(streamId+1)}']))
+                                txSectorId.append(int(row[f'TX_SECTOR_ID{str(streamId+1)}']))
+                                txAwv.append(int(row[f'TX_AWV_ID{str(streamId+1)}']))
 
 
                                 # Rx Streams
                                 # We need to associate the correct RX PAA to the TX stream
                                 # It is done using the PEER_RX_ID header value which contains the PAA associated to a TX Stream
-                                bestreamIdCombination.append([int(row['TX_ANTENNA_ID' + str(streamId + 1)]),
-                                                              int(row['PEER_RX_ID' + str(streamId + 1)])])
-                                rxAntennaId[int(row['PEER_RX_ID' + str(streamId + 1)])] = int(row['RX_ANTENNA_ID' + str(streamId + 1)])
-                                rxSectorId[int(row['PEER_RX_ID' + str(streamId + 1)])] = int(row['RX_SECTOR_ID' + str(streamId + 1)])
-                                rxAwv[int(row['PEER_RX_ID' + str(streamId + 1)])] = int(row['RX_AWV_ID' + str(streamId+1)])
+                                bestreamIdCombination.append(
+                                    [
+                                        int(
+                                            row[
+                                                f'TX_ANTENNA_ID{str(streamId + 1)}'
+                                            ]
+                                        ),
+                                        int(
+                                            row[
+                                                f'PEER_RX_ID{str(streamId + 1)}'
+                                            ]
+                                        ),
+                                    ]
+                                )
+
+                                rxAntennaId[
+                                    int(row[f'PEER_RX_ID{str(streamId + 1)}'])
+                                ] = int(
+                                    row[f'RX_ANTENNA_ID{str(streamId + 1)}']
+                                )
+
+                                rxSectorId[
+                                    int(row[f'PEER_RX_ID{str(streamId + 1)}'])
+                                ] = int(
+                                    row[f'RX_SECTOR_ID{str(streamId + 1)}']
+                                )
+
+                                rxAwv[
+                                    int(row[f'PEER_RX_ID{str(streamId + 1)}'])
+                                ] = int(row[f'RX_AWV_ID{str(streamId+1)}'])
+
 
                             # Remove the initial index to have a key index starting at 0
                             suMimoResults[int(row['TRACE_ID']) - initialIndex,int(row['SRC_ID']),int(row['DST_ID']) ] = gb.MimoBeamformingResults(
@@ -109,7 +135,10 @@ def readNs3SuMimoResults(nsResultsFolder, suMimoFilePrefix, qdScenario):
                                 rxAwv
                             )
                 except OSError as e:
-                    gb.logger.warning("SU-MIMO file"+ filename + " missing - SU-MIMO from ns-3 will be disabled")
+                    gb.logger.warning(
+                        f"SU-MIMO file{filename} missing - SU-MIMO from ns-3 will be disabled"
+                    )
+
                     return None
     return suMimoResults
 
@@ -179,11 +208,11 @@ def readNs3MuMimoResults(nsResultsFolder, muMimoInitiatorPrefix, muMimoResponder
 
                             # Construct the results for every TX and RX streams
                             ############## Tx Streams ################
-                            txAntennaId.append(int(row['ANTENNA_ID' + str(streamId + 1)]))
-                            txSectorId.append(int(row['SECTOR_ID' + str(streamId + 1)]))
-                            txAwv.append(int(row['AWV_ID' + str(streamId + 1)]))
+                            txAntennaId.append(int(row[f'ANTENNA_ID{str(streamId + 1)}']))
+                            txSectorId.append(int(row[f'SECTOR_ID{str(streamId + 1)}']))
+                            txAwv.append(int(row[f'AWV_ID{str(streamId + 1)}']))
                             # We need to know to which responder each stream is connected to
-                            mimoResponder.append(int(row['RESPONDER_ID' + str(streamId + 1)]))
+                            mimoResponder.append(int(row[f'RESPONDER_ID{str(streamId + 1)}']))
                             # Construct the fileNames for the responders
                             mimoResponderFilePrefix = muMimoResponderPrefix + str(mimoResponder[-1]) + "_" + str(mimoGroup) + commentFileSuffix
                             mimoResponderFileName = os.path.join(nsResultsFolder, mimoResponderFilePrefix)
@@ -206,7 +235,6 @@ def readNs3MuMimoResults(nsResultsFolder, muMimoInitiatorPrefix, muMimoResponder
                                             rxAwv.append(int(rowResponder['AWV_ID1']))
 
 
-                                        if (nbLineResponderRead == lineInitiatorRead):
                                             break
                             except OSError as e:
                                 print(
@@ -278,12 +306,12 @@ def readNs3Configuration(scenarioFolder, nodesConfigurationFile, qdScenario):
     # The first line determines the number of AP active in the ns-3 simulation
     nbActiveAps = int(f.readline())
     nbActiveStas = 0
-    for indexAp in range(nbActiveAps):
+    for _ in range(nbActiveAps):
         # Get the active STAs for each AP
         apID = int(f.readline().strip())  # Read the AP ID
 
         nodesDic[apID] = gb.Node(apID, gb.NodeType.AP)
-        gb.logger.debug("AP:" + str(apID))
+        gb.logger.debug(f"AP:{apID}")
         nbAssociatedSTAs = int(f.readline().strip())  # Read the number of STAs associated to the AP
         nbActiveStas += nbAssociatedSTAs
         if nbAssociatedSTAs > 0:
@@ -294,8 +322,8 @@ def readNs3Configuration(scenarioFolder, nodesConfigurationFile, qdScenario):
                 # Parse the line separated by ','
                 staListAsAList = [int(x) for x in staAssociated.split(',')]  # TODO Last Minute Bug - Ugly Fix
                 # for i in range(len(staListAsAList)):
-                for i in range(len(staListAsAList)):
-                    nodesDic[staListAsAList[i]] = gb.Node(staListAsAList[i], gb.NodeType.STA)
+                for item in staListAsAList:
+                    nodesDic[item] = gb.Node(item, gb.NodeType.STA)
             elif staAssociated.find(':') != -1:
                 # Parse the line separated by ':'
                 index = staAssociated.split(':')
@@ -327,7 +355,7 @@ def readNsSlsResults(scenarioFolder, slsFile, qdScenario):
     try:
         qdScenario.nsSlsResults = pd.read_csv(fileName)
     except OSError as e:
-        gb.logger.warning("SLS Activated and no ns-3 results file found: " + fileName)
+        gb.logger.warning(f"SLS Activated and no ns-3 results file found: {fileName}")
         qdScenario.nsSlsResults = pd.DataFrame()
 
 
@@ -388,13 +416,9 @@ def getNsSlsResultsBftId(txNode,rxNode, bftId,qdScenario):
 def getNumberOfBft(txNode,rxNode, qdScenario):
     """Get the number of Beamforming Training performed between a pair of device
     """
-    if not qdScenario.nsSlsResults.empty:
-        txToRxDf = qdScenario.nsSlsResults.loc[
-            (qdScenario.nsSlsResults["SRC_ID"] == txNode) & (qdScenario.nsSlsResults["DST_ID"] == rxNode)]
-        if txToRxDf.empty:
-            # No result found
-            return 1
-    else:
+    if qdScenario.nsSlsResults.empty:
         # No result available
         return 1
-    return txToRxDf['TIME'].size
+    txToRxDf = qdScenario.nsSlsResults.loc[
+        (qdScenario.nsSlsResults["SRC_ID"] == txNode) & (qdScenario.nsSlsResults["DST_ID"] == rxNode)]
+    return 1 if txToRxDf.empty else txToRxDf['TIME'].size

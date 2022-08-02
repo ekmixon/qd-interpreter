@@ -462,26 +462,25 @@ def loadCodebook(CodebookFolder,beamTracking, codebookMode, apFileName=None, sta
             globals.logger.info("AP(s) and STA(s) codebook are identical")
             globals.logger.info("Load Codebook:" + path + staFileName)
             loadComputation(apdf, 'both',  codebookObject,beamTracking, codebookMode)
-        else:
-            if parallel:
-                que = queue.Queue()  # queue
-                thread1 = threading.Thread(target=lambda q, apdf,codebookObject,beamTracking,codebookMode: q.put(loadComputation(
-                    df=apdf, dfType='ap', codebookObject=codebookObject,beamTracking=beamTracking, codebookMode = codebookMode)),
-                                           args=(que, apdf, codebookObject,beamTracking, codebookMode))
-                thread2 = threading.Thread(target=lambda q, stadf, codebookObject,beamTracking,codebookMode: q.put(loadComputation(
-                    df=stadf, dfType='sta',  codebookObject=codebookObject,beamTracking=beamTracking,codebookMode = codebookMode)),
-                                           args=(que, stadf,  codebookObject,beamTracking,codebookMode))
-                thread1.start()
-                thread2.start()
-                thread1.join()
-                thread2.join()
+        elif parallel:
+            que = queue.Queue()  # queue
+            thread1 = threading.Thread(target=lambda q, apdf,codebookObject,beamTracking,codebookMode: q.put(loadComputation(
+                df=apdf, dfType='ap', codebookObject=codebookObject,beamTracking=beamTracking, codebookMode = codebookMode)),
+                                       args=(que, apdf, codebookObject,beamTracking, codebookMode))
+            thread2 = threading.Thread(target=lambda q, stadf, codebookObject,beamTracking,codebookMode: q.put(loadComputation(
+                df=stadf, dfType='sta',  codebookObject=codebookObject,beamTracking=beamTracking,codebookMode = codebookMode)),
+                                       args=(que, stadf,  codebookObject,beamTracking,codebookMode))
+            thread1.start()
+            thread2.start()
+            thread1.join()
+            thread2.join()
 
-            else:
-                globals.logger.info("AP(s) and STA(s) codebook are different")
-                globals.logger.info("Load AP codebook:" + path + apFileName)
-                loadComputation(apdf, 'ap', codebookObject,beamTracking,codebookMode)
-                globals.logger.info("Load STA codebook:" + path + staFileName)
-                loadComputation(stadf, 'sta', codebookObject,beamTracking,codebookMode)
+        else:
+            globals.logger.info("AP(s) and STA(s) codebook are different")
+            globals.logger.info("Load AP codebook:" + path + apFileName)
+            loadComputation(apdf, 'ap', codebookObject,beamTracking,codebookMode)
+            globals.logger.info("Load STA codebook:" + path + staFileName)
+            loadComputation(stadf, 'sta', codebookObject,beamTracking,codebookMode)
 
     elif apFileName is not None:
         loadComputation(apdf, 'ap',codebookObject, beamTracking,codebookMode)

@@ -180,7 +180,12 @@ class TxParam:
         # lay down numBands/2 bands symmetrically around center frequency
         # and place an additional band at center frequency
         # The computation of the center frequencies is done as in ns-3 (i.e, numBands is an int TODO Check if not a problem when dividing by 2)
-        startingFrequencyHz = centerFrequencyHz - (int(numBands / 2) * bandBandwidth) - float(bandBandwidth) / 2
+        startingFrequencyHz = (
+            centerFrequencyHz
+            - numBands // 2 * bandBandwidth
+            - float(bandBandwidth) / 2
+        )
+
         for i in range(numBands):
             f = startingFrequencyHz + (i * bandBandwidth)
             fl = f
@@ -213,12 +218,14 @@ class TxParam:
         """
         # TODO Mode is not yet used as we focused only on BT but the allocated power is different for ODFM for example
         txPowerPerSubBandW = txPowerW / nbSubBands  # Get the power per subband
-        txPowerPerSubBandWHz = []
-        # Compute the Power
-        for i in range(nbSubBands):
-            txPowerPerSubBandWHz.append(
-                txPowerPerSubBandW / (
-                        frequencies.getHigherFrequencySubband(i) - frequencies.getLowerFrequencySubband(i)))
+        txPowerPerSubBandWHz = [
+            txPowerPerSubBandW
+            / (
+                frequencies.getHigherFrequencySubband(i)
+                - frequencies.getLowerFrequencySubband(i)
+            )
+            for i in range(nbSubBands)
+        ]
 
         txPowerPerSubBandWHz = np.asarray(txPowerPerSubBandWHz)
         self.txPowerPerSubBandWHz = txPowerPerSubBandWHz
@@ -344,7 +351,6 @@ def precomputeTxValues(txRx, qdProperties, centerFrequenciesList):
     """
     # Get the number of MPCs
     nbMpcs = qdProperties.DicNbMultipathTxRx[txRx]
-    doppler = complex(1, 0)
     if (nbMpcs > 0):
         # Compute complex delay
         temp_delay = -2 * np.pi * np.outer(centerFrequenciesList, qdProperties.DicDelayTxRx[txRx])
@@ -354,6 +360,7 @@ def precomputeTxValues(txRx, qdProperties, centerFrequenciesList):
         # Complex phase
         phase_numpy = qdProperties.DicPhaseTxRx[txRx]
         complexPhase = np.cos(phase_numpy) + 1j * np.sin(phase_numpy)
+        doppler = complex(1, 0)
         # Small Scale Fading
         smallScaleFading = delay * np.sqrt(pathPowerLinear) * doppler * complexPhase
 

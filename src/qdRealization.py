@@ -53,7 +53,7 @@ class InitialOrientation:
         self.z = z
 
     def __str__(self):
-        return "x:" + str(self.x) + " y:" + str(self.y) + "z:" + str(self.z)
+        return f"x:{str(self.x)} y:{str(self.y)}z:{str(self.z)}"
 
 
 class QdProperties():
@@ -451,10 +451,7 @@ class QdScenario:
         nodeId : int
             The Node ID
         """
-        if self.getNodeType(nodeId) == globals.NodeType.AP:
-            return True
-        else:
-            return False
+        return self.getNodeType(nodeId) == globals.NodeType.AP
 
     def isNodeSta(self,nodeId):
         """Return True if the node nodeId is a STA
@@ -464,10 +461,7 @@ class QdScenario:
         nodeId : int
             The Node ID
         """
-        if self.getNodeType(nodeId) == globals.NodeType.STA:
-            return True
-        else:
-            return False
+        return self.getNodeType(nodeId) == globals.NodeType.STA
 
 class BeamTrackingResults:
     """A class to store BeamTracking results
@@ -518,20 +512,26 @@ def readQdConfiguration(qdRealizationInputFolder, qdConfigurationFile):
             for row in readCSV:
                 if row[0] == 'numberOfTimeDivisions':
                     timeDivision = int(row[1])
-                    globals.logger.info("Channel Realization Number of Time Divisions:" + str(timeDivision))
+                    globals.logger.info(
+                        f"Channel Realization Number of Time Divisions:{timeDivision}"
+                    )
+
                 elif row[0] == 'totalTimeDuration':
                     totalTime = float(row[1])
-                    globals.logger.info("Total Time:" + str(totalTime))
+                    globals.logger.info(f"Total Time:{totalTime}")
                 elif row[0] == 'environmentFileName':
                     environmentFile = row[1]
-                    globals.logger.info("Environment File Name:" + str(environmentFile))
+                    globals.logger.info(f"Environment File Name:{str(environmentFile)}")
                 elif row[0] == 'totalNumberOfReflections':
                     maxReflectionOrder = int(row[1])
 
         # Get the total number of nodes using NodePosition files
         index = 0
         while True:
-            positionFile =  os.path.join(qdRealizationInputFolder, "NodePosition" + str(index) + ".dat")
+            positionFile = os.path.join(
+                qdRealizationInputFolder, f"NodePosition{str(index)}.dat"
+            )
+
             if os.path.exists(positionFile):
                 index += 1
             else:
@@ -547,7 +547,10 @@ def readQdConfiguration(qdRealizationInputFolder, qdConfigurationFile):
         print("\n")
         return nbNodes, timeDivision, (totalTime / timeDivision), environmentFile, maxReflectionOrder
     except FileNotFoundError:
-        globals.logger.critical("Q-D configuration file: " + fileName + " does not exist - Please check that the scenario you want to launch exists - Exiting Q-D Interpreter")
+        globals.logger.critical(
+            f"Q-D configuration file: {fileName} does not exist - Please check that the scenario you want to launch exists - Exiting Q-D Interpreter"
+        )
+
         exit()
 
 
@@ -567,7 +570,7 @@ def readJSONNodesPositionFile(visualizerFolder, nodesPositionsJSON,qdScenario):
     """
 
     fileName = os.path.join(visualizerFolder, nodesPositionsJSON)
-    globals.logger.info("Read APs and STAs positions and rotation:" + fileName)
+    globals.logger.info(f"Read APs and STAs positions and rotation:{fileName}")
     try:
         # The file exist - Load it
         data = [json.loads(line) for line in open(fileName, 'r')]
@@ -612,7 +615,10 @@ def readJSONNodesPositionFile(visualizerFolder, nodesPositionsJSON,qdScenario):
         nodesRotations[:, [0, 1, 2]] = nodesRotations[:,[1, 2, 0]]
         qdScenario.setNodesRotation(nodesRotations)  # Save the nodes rotations
     except FileNotFoundError:
-        globals.logger.critical("JSON Node Position File: " + fileName + " does not exist - Exit")
+        globals.logger.critical(
+            f"JSON Node Position File: {fileName} does not exist - Exit"
+        )
+
         exit()
 
 
@@ -631,15 +637,14 @@ def readTargetJSONPositionFile(visualizerFolder, targetsPositionsJSON,qdScenario
         Scenario parameters (Use to store the target information in this case.)
     """
     fileName = os.path.join(visualizerFolder, targetsPositionsJSON)
-    globals.logger.info("Read Targets positions and rotation:" + fileName)
+    globals.logger.info(f"Read Targets positions and rotation:{fileName}")
     try:
         # The file exist - Load it
         data = [json.loads(line) for line in open(fileName, 'r')]
         targetsAllJointsPositions = []
         currentTargetId = 0 # We know we'll start with a Target Id equal to 0
         currentTargetJointsPositions = []
-        indexFileEnd = 1
-        for position in data:
+        for indexFileEnd, position in enumerate(data, start=1):
             # Read Target Positions and Rotations line by line
             # Due to how is organized the JSON file (one target/Joint per line)
             # and the fact that we don't know how many joints a target is made of
@@ -670,7 +675,6 @@ def readTargetJSONPositionFile(visualizerFolder, targetsPositionsJSON,qdScenario
                 currentTargetJointsPositions.clear()
                 # Store the first joint positions of the newly read target
                 currentTargetJointsPositions.append(position['position'])
-            indexFileEnd+=1
         # We want to store in the last element the coordinates of all targets to speed up the visualization
         allPositions = np.vstack(np.transpose(np.asarray(targetsAllJointsPositions),(0,3,1,2)))
         allPositions = np.transpose(allPositions,(1,2,0))
@@ -684,7 +688,10 @@ def readTargetJSONPositionFile(visualizerFolder, targetsPositionsJSON,qdScenario
 
     except FileNotFoundError:
         # Todo add disable sensing
-        globals.logger.critical("JSON Targets Position File: " + fileName + " does not exist - Exit")
+        globals.logger.critical(
+            f"JSON Targets Position File: {fileName} does not exist - Exit"
+        )
+
         exit()
 
 

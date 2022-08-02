@@ -81,11 +81,8 @@ def createStasAssociation(qdScenario,associationMode, staIds, preprocessedAssoci
             if (idApStaAssociated, traceIndex) not in apConnectedStas:
                 # It is the first STA associated to the AP for this trace
                 apConnectedStas[(idApStaAssociated, traceIndex)] = []
-                # Add the id of the STA to the dictionary holding the STA connected to each AP
-                apConnectedStas[(idApStaAssociated, traceIndex)].append(i)
-            else:
-                # Add the id of the STA to the dictionary holding the STA connected to each AP
-                apConnectedStas[(idApStaAssociated, traceIndex)].append(i)
+            # Add the id of the STA to the dictionary holding the STA connected to each AP
+            apConnectedStas[(idApStaAssociated, traceIndex)].append(i)
         globals.printProgressBarWithoutETA(traceIndex + 1, qdScenario.nbTraces, prefix='\tProgress:', suffix='Complete',
                                            length=50)
     return apConnectedStas
@@ -128,15 +125,13 @@ def createDownlinkScheduling(qdScenario,apConnectedStas, folderPrefix):
         idApDownlink = [idAp, idAp + 1]
         idStaDownlink = []
         averageStaConnected = 0
-        nbSample = 0
         traceList = []
         for traceIndex in range(qdScenario.nbTraces):
             if (idAp, traceIndex) in apConnectedStas:
                 # There is at least one STA associated to the AP for a given trace
                 nbStaConnectedToAp = len(apConnectedStas[idAp, traceIndex])
-                nbStasConnectedToAps[idAp, traceIndex] = int(nbStaConnectedToAp)
+                nbStasConnectedToAps[idAp, traceIndex] = nbStaConnectedToAp
                 averageStaConnected += nbStaConnectedToAp
-                nbSample += 1
                 # Compute the duration of a transmission allocated to each STA
                 timeStep = qdScenario.timeStep / nbStaConnectedToAp
                 for allocationSta in range(nbStaConnectedToAp):
@@ -154,7 +149,6 @@ def createDownlinkScheduling(qdScenario,apConnectedStas, folderPrefix):
                 # Color the scheduling to white
                 idStaDownlink.append(NO_TRANSMISSION)
                 nbStasConnectedToAps[idAp, traceIndex] = 0
-                nbSample += 1
                 traceList.append(traceIndex)
 
         # We need to add a closing value as we are adding only the beginning interval values
@@ -195,19 +189,19 @@ def createDownlinkScheduling(qdScenario,apConnectedStas, folderPrefix):
         os.makedirs(destinationPath)
 
     figureFile = "Scheduling"
-    fileToSave = os.path.join(destinationPath, figureFile + ".svg", )
+    fileToSave = os.path.join(destinationPath, f"{figureFile}.svg")
     plt.savefig(fileToSave)
     plt.cla()
     plt.close(plt.gcf())
 
+    xLegend = "Trace"
+    yLegend = "Number of STAs connected"
     # Create a visualization for the evolution of the number of STAs connected to the AP
     for idAp in range(qdScenario.nbAps):
         xValues = np.arange(qdScenario.nbTraces)
         yValues = nbStasConnectedToAps[idAp]
-        xLegend = "Trace"
-        yLegend = "Number of STAs connected"
-        titleGraph = "Number of STAs connected to AP:" + str(idAp)
-        fileToSave = "ConnectivityAP" + str(idAp)
+        titleGraph = f"Number of STAs connected to AP:{str(idAp)}"
+        fileToSave = f"ConnectivityAP{str(idAp)}"
         destFolder = os.path.join(folderPrefix, globals.associationFolder)
         nbStaConnectedToApPlot = plots.OraclePlot(xValues, yValues,
                                                   destFolder,

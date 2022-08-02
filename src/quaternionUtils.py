@@ -54,11 +54,8 @@ def eulFqtrn(q,mode):
     the1 = np.ones(qa.shape)
     the2 = 2*the1
     tmp = qa*qb*the2 + qc*qd*the2
-    if tmp > 1:
-        tmp = 1
-    if tmp < -1:
-        tmp = -1
-
+    tmp = min(tmp, 1)
+    tmp = max(tmp, -1)
     # Compute the three rotation angles
     a = np.arctan2((qa*qd*the2 - qb*qc*the2),(qa**2*the2 - the1 + qc**2*the2))
     b = np.arcsin(tmp)
@@ -68,9 +65,6 @@ def eulFqtrn(q,mode):
 def coordinateRotation(P, C, euler, rotationType):
     """Apply rotation using quaternion
     """
-    Q = []
-    for element in euler:
-        Q.append(qtrnFeul(element , 'ZXY'))
-
+    Q = [qtrnFeul(element , 'ZXY') for element in euler]
     totalQuaternionRotation =  Q[0] * Q[1]
     return np.rad2deg(eulFqtrn(totalQuaternionRotation,'ZXY'))
